@@ -9,8 +9,8 @@ Supervised methods for ER, however, often require extensive human efforts to
 label record pairs as matches and non-matches. An intuitive approach to avoid
 this tedious labelling task is to utilise existing labelled training data 
 from a related domain. The idea of utilising a source domain with a different 
-distribution to label a target domain has attracted the attention of  
-researchers and given rise to the area of transfer learning (TL). 
+distribution to label a target domain has attracted the attention of researchers 
+and given rise to the area of transfer learning (TL). 
 
 
 ## Contents and usage
