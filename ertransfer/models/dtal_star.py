@@ -149,19 +149,24 @@ class DTAL_star():
       validation='{}-test.csv'.format(Xs_name),
       test='{}-train.csv'.format(Xt_name))
 
+    print('Train data set shape:', len(train.examples))
+    print('Test data set shape:', len(test.examples))
+
     # Run model
     print(self.base_path + Xs_name + Xt_name + 'hybrid-model.pth')
     self.model.run_train(
       train,
       validation,
       test,
-      epochs=self.epochs,
+      # epochs=self.epochs,
+      epochs=1,
       batch_size=self.batch_size,
       # best_save_path=self.base_path + Xs_name + Xt_name + 'hybrid-model.pth',
       best_save_path='hybrid-model.pth',
       pos_neg_ratio=self.pos_neg_ratio)
 
     # Evaluate model
+
     f1, stats = self.model.run_eval(test)
     logging.info('F1 score : {}'.format(f1))
     logging.info('Precision : {}'.format(stats.precision()))

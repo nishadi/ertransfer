@@ -262,7 +262,6 @@ class Runner(object):
                 stats = Statistics()
 
             if train:
-
                 # Domain classification with target data
                 tgt_batch = next(tgt_iter, None)
                 if tgt_batch is None:
@@ -270,7 +269,7 @@ class Runner(object):
                     break
                 _, domain_output = model(tgt_batch)
 
-                domain_label = torch.ones(len(batch.id))
+                domain_label = torch.ones(len(tgt_batch.id))
                 domain_label = domain_label.long()
                 loss_t_domain = criterion(domain_output, domain_label)
 
@@ -295,7 +294,7 @@ class Runner(object):
         if return_predictions:
             return predictions
         else:
-            return cum_stats.f1()
+            return cum_stats.f1(), cum_stats
 
     @staticmethod
     def train(model,
@@ -327,10 +326,10 @@ class Runner(object):
         """
 
         model.initialize(train_dataset)
-        print('LOCAL MODULE')
 
         model._register_train_buffer('optimizer_state', None)
         model._register_train_buffer('best_score', None)
+        model._register_train_buffer('best_stats', None)
         model._register_train_buffer('epoch', None)
 
         if criterion is None:
@@ -366,12 +365,14 @@ class Runner(object):
         optimizer.last_acc = model.best_score
 
         for epoch in epochs_range:
+            print('{}-{}'.format(epoch, time.time()))
             model.epoch = epoch
             Runner._run(
                 'TRAIN', model, train_dataset, target_dataset, criterion,
                 optimizer, train=True, **kwargs)
 
-            score = Runner._run('EVAL', model, validation_dataset, train=False, **kwargs)
+            score, stats = Runner._run('EVAL', model, validation_dataset,
+                                 train=False, **kwargs)
 
             optimizer.update_learning_rate(score, epoch + 1)
             model.optimizer_state = optimizer.base_optimizer.state_dict()
@@ -380,6 +381,7 @@ class Runner(object):
             if score > model.best_score:
                 print('* Best F1:', score)
                 model.best_score = score
+                model.best_stats = stats
                 new_best_found = True
 
                 if best_save_path and new_best_found:
@@ -399,7 +401,7 @@ class Runner(object):
         model.load_state(best_save_path)
         print('Training done.')
 
-        return model.best_score
+        return model.best_stats
 
     def eval(model, dataset, **kwargs):
         """eval(model, dataset, device=None, batch_size=32, progress_style='bar', log_freq=5,
